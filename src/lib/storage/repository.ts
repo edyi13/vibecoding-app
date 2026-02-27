@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { PrismaClientInitializationError, PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { jsonAdapter } from "./json-adapter";
 import type { Task, TaskIndicator, CreateTaskInput, UpdateTaskInput, TaskFilter } from "./types";
 
@@ -7,10 +6,15 @@ let dbAvailable = true;
 let lastFailTime = 0;
 const CACHE_TTL_MS = 30_000;
 
+const CONNECTIVITY_ERROR_CODES = new Set(["P1000", "P1001", "P1002", "P1017"]);
+
 function isConnectivityError(err: unknown): boolean {
-  if (err instanceof PrismaClientInitializationError) return true;
-  if (err instanceof PrismaClientKnownRequestError) {
-    return ["P1000", "P1001", "P1002", "P1017"].includes(err.code);
+  if (!(err instanceof Error)) return false;
+  const name = err.constructor.name;
+  // Use name comparison instead of instanceof to avoid bundling/module boundary issues
+  if (name === "PrismaClientInitializationError") return true;
+  if (name === "PrismaClientKnownRequestError") {
+    return CONNECTIVITY_ERROR_CODES.has((err as any).code);
   }
   return false;
 }
@@ -35,8 +39,8 @@ export const taskRepository = {
         return await prisma.task.create({ data }) as Task;
       } catch (err) {
         if (!isConnectivityError(err)) throw err;
+        console.warn("[storage] DB unavailable (%s %s), falling back to JSON", (err as any).constructor.name, (err as any).code ?? (err as any).message);
         markDbDown();
-        console.warn("DB unavailable, falling back to local JSON storage");
       }
     }
     return jsonAdapter.create(data);
@@ -49,8 +53,8 @@ export const taskRepository = {
         return;
       } catch (err) {
         if (!isConnectivityError(err)) throw err;
+        console.warn("[storage] DB unavailable (%s %s), falling back to JSON", (err as any).constructor.name, (err as any).code ?? (err as any).message);
         markDbDown();
-        console.warn("DB unavailable, falling back to local JSON storage");
       }
     }
     jsonAdapter.delete(id);
@@ -62,8 +66,8 @@ export const taskRepository = {
         return await prisma.task.update({ where: { id }, data }) as Task;
       } catch (err) {
         if (!isConnectivityError(err)) throw err;
+        console.warn("[storage] DB unavailable (%s %s), falling back to JSON", (err as any).constructor.name, (err as any).code ?? (err as any).message);
         markDbDown();
-        console.warn("DB unavailable, falling back to local JSON storage");
       }
     }
     return jsonAdapter.update(id, data);
@@ -78,8 +82,8 @@ export const taskRepository = {
         }) as Task[];
       } catch (err) {
         if (!isConnectivityError(err)) throw err;
+        console.warn("[storage] DB unavailable (%s %s), falling back to JSON", (err as any).constructor.name, (err as any).code ?? (err as any).message);
         markDbDown();
-        console.warn("DB unavailable, falling back to local JSON storage");
       }
     }
     return jsonAdapter.findMany(filter);
@@ -99,8 +103,8 @@ export const taskRepository = {
         });
       } catch (err) {
         if (!isConnectivityError(err)) throw err;
+        console.warn("[storage] DB unavailable (%s %s), falling back to JSON", (err as any).constructor.name, (err as any).code ?? (err as any).message);
         markDbDown();
-        console.warn("DB unavailable, falling back to local JSON storage");
       }
     }
     return jsonAdapter.findManyForCalendar(start, end);
