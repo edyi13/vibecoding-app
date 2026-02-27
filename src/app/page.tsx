@@ -3,6 +3,9 @@ import { getTasks, getTasksForCalendar, DateFilterMode } from "./actions";
 import { Sidebar } from "@/components/Sidebar";
 import { TasksContent } from "@/components/TasksContent";
 
+// Force dynamic rendering - page needs database access at runtime
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<{ date?: string; by?: string }>;
 }
