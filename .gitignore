@@ -26,9 +26,6 @@ yarn-error.log*
 .env*.local
 .env
 
-# local storage fallback data
-.local-tasks.json
-
 # vercel
 .vercel
 

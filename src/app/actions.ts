@@ -1,12 +1,13 @@
 "use server";
 
-import { taskRepository, StoragePriority } from "@/lib/storage";
+import { taskRepository } from "@/lib/storage/repository";
+import type { TaskFilter } from "@/lib/storage/types";
+import { Priority } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { startOfDay, endOfDay } from "date-fns";
 import { parseTaskWithAI } from "@/lib/ai-parser";
 
-// Re-export Priority type for backward compatibility
-export type Priority = StoragePriority;
+export type { Priority };
 
 export type ActionResult = { success: true } | { success: false; error: string };
 
@@ -85,9 +86,9 @@ export async function deleteTask(id: string): Promise<ActionResult> {
 
 export async function updateTask(
   id: string,
-  data: { dueDate?: string | null; dueTime?: string | null; priority?: StoragePriority }
+  data: { dueDate?: string | null; dueTime?: string | null; priority?: Priority }
 ): Promise<ActionResult> {
-  const updateData: { dueDate?: Date | null; priority?: StoragePriority } = {};
+  const updateData: { dueDate?: Date | null; priority?: Priority } = {};
 
   if (data.dueDate !== undefined) {
     if (data.dueDate) {
@@ -132,11 +133,7 @@ export async function getTasks(
   completed?: boolean,
   filterBy: DateFilterMode = "due"
 ) {
-  const where: {
-    completed?: boolean;
-    dueDate?: { gte: Date; lte: Date };
-    createdAt?: { gte: Date; lte: Date };
-  } = {};
+  const where: TaskFilter = {};
 
   if (completed !== undefined) {
     where.completed = completed;
@@ -167,7 +164,5 @@ export async function getTasksForCalendar(year: number, month: number) {
   const startDate = new Date(year, month, 1);
   const endDate = new Date(year, month + 1, 0, 23, 59, 59);
 
-  return taskRepository.findManyForCalendar({
-    dateRange: { start: startDate, end: endDate },
-  });
+  return taskRepository.findManyForCalendar(startDate, endDate);
 }

@@ -1,57 +1,38 @@
-/**
- * Storage types for the local storage fallback feature
- *
- * TO REMOVE THIS FEATURE: Delete this file (see feature-flags.ts for full instructions)
- */
+import type { Priority } from "@prisma/client";
 
-export type StoragePriority = "LOW" | "MEDIUM" | "HIGH";
-
-export interface StorageTask {
+export interface Task {
   id: string;
   title: string;
   createdAt: Date;
   dueDate: Date | null;
-  priority: StoragePriority;
+  priority: Priority;
   completed: boolean;
   estimatedMinutes: number;
   deadline: Date | null;
 }
 
-export interface StorageTaskIndicator {
+export interface TaskIndicator {
   id: string;
   createdAt: Date;
   dueDate: Date | null;
 }
 
-export interface CreateTaskData {
+export interface CreateTaskInput {
   title: string;
   dueDate: Date | null;
-  priority: StoragePriority;
+  priority: Priority;
   estimatedMinutes: number;
   deadline: Date | null;
 }
 
-export interface UpdateTaskData {
+export interface UpdateTaskInput {
   dueDate?: Date | null;
-  priority?: StoragePriority;
+  priority?: Priority;
   completed?: boolean;
 }
 
-export interface TaskWhereInput {
+export interface TaskFilter {
   completed?: boolean;
   dueDate?: { gte: Date; lte: Date };
   createdAt?: { gte: Date; lte: Date };
-}
-
-export interface CalendarWhereInput {
-  dateRange: { start: Date; end: Date };
-}
-
-export interface ITaskStorage {
-  create(data: CreateTaskData): Promise<StorageTask>;
-  delete(id: string): Promise<void>;
-  update(id: string, data: UpdateTaskData): Promise<StorageTask>;
-  findMany(where?: TaskWhereInput): Promise<StorageTask[]>;
-  findManyForCalendar(where: CalendarWhereInput): Promise<StorageTaskIndicator[]>;
-  isAvailable(): Promise<boolean>;
 }
