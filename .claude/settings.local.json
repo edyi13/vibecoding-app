@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm run db:push:*)",
+      "Bash(timeout:*)",
+      "Bash(npm run db:generate:*)",
+      "Bash(cmd /c \"rmdir /s /q node_modules\\\\.prisma\")",
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(npm ls:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run test:run:*)"
+    ]
+  }
+}
