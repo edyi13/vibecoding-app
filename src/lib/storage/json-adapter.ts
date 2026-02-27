@@ -2,7 +2,9 @@ import fs from "fs";
 import path from "path";
 import type { Task, TaskIndicator, CreateTaskInput, UpdateTaskInput, TaskFilter } from "./types";
 
-const FILE_PATH = path.join(process.cwd(), ".local-tasks.json");
+const FILE_PATH = process.env.VERCEL
+  ? "/tmp/.local-tasks.json"
+  : path.join(process.cwd(), ".local-tasks.json");
 
 function readAll(): Task[] {
   if (!fs.existsSync(FILE_PATH)) return [];
